@@ -1,23 +1,36 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
-import { fixtureEvaluation, fixtureLesson, fixtureQuestion } from "./fixtures";
-import { evaluationSchema, lessonSchema, questionSchema, type AnswerEvaluation, type GeneratedQuestion, type MicroLesson } from "./schemas";
+import { fixtureDiagnosis, fixtureLesson, fixtureQuestion, fixtureTaxonomyMatch } from "./fixtures";
+import { mergeEvaluation, type TaxonomyEntry } from "./evaluation";
+import { diagnosisPrompt, taxonomyMatchPrompt } from "./prompts";
+import { diagnosisSchema, lessonSchema, questionSchema, taxonomyMatchSchema, type AnswerEvaluation, type GeneratedQuestion, type MicroLesson } from "./schemas";
+import type { Locale } from "../locale";
 
 type CallProfile = {
-  model: "gpt-5.6" | "gpt-5.6-terra";
-  reasoningEffort: "high" | "xhigh";
+  model: "gpt-5.6" | "gpt-5.6-terra" | "gpt-5.6-luna";
+  reasoningEffort: "low" | "xhigh";
   timeout: number;
 };
 
-const INTERACTIVE_PROFILE: CallProfile = {
+const QUESTION_PROFILE: CallProfile = {
+  model: "gpt-5.6",
+  reasoningEffort: "xhigh",
+  timeout: 60_000,
+};
+const DIAGNOSIS_PROFILE: CallProfile = {
   model: "gpt-5.6-terra",
   reasoningEffort: "xhigh",
   timeout: 30_000,
 };
+const TAXONOMY_PROFILE: CallProfile = {
+  model: "gpt-5.6-luna",
+  reasoningEffort: "low",
+  timeout: 15_000,
+};
 const LESSON_PROFILE: CallProfile = {
   model: "gpt-5.6",
-  reasoningEffort: "high",
+  reasoningEffort: "xhigh",
   timeout: 60_000,
 };
 
@@ -36,12 +49,19 @@ async function structuredCall<T>(name: string, schema: z.ZodType<T, z.ZodTypeDef
 
 export async function generateQuestion(prompt: string): Promise<GeneratedQuestion> {
   if (!process.env.OPENAI_API_KEY) return fixtureQuestion;
-  return structuredCall<GeneratedQuestion>("fraction_question", questionSchema, prompt, INTERACTIVE_PROFILE);
+  return structuredCall<GeneratedQuestion>("fraction_question", questionSchema, prompt, QUESTION_PROFILE);
 }
 
-export async function evaluateAnswer(prompt: string): Promise<AnswerEvaluation> {
-  if (!process.env.OPENAI_API_KEY) return fixtureEvaluation;
-  return structuredCall<AnswerEvaluation>("answer_evaluation", evaluationSchema, prompt, INTERACTIVE_PROFILE);
+export async function evaluateAnswer(question: string, answer: string, taxonomy: TaxonomyEntry[], locale: Locale): Promise<AnswerEvaluation> {
+  if (!process.env.OPENAI_API_KEY) return mergeEvaluation(fixtureDiagnosis, fixtureTaxonomyMatch);
+  const [diagnosis, match] = await Promise.all([
+    structuredCall("answer_diagnosis", diagnosisSchema, diagnosisPrompt(question, answer, locale), DIAGNOSIS_PROFILE),
+    structuredCall("taxonomy_match", taxonomyMatchSchema, taxonomyMatchPrompt(question, answer, taxonomy, locale), TAXONOMY_PROFILE),
+  ]);
+  if (match.matched_slug && !taxonomy.some((entry) => entry.slug === match.matched_slug)) {
+    throw new Error("Taxonomy matching returned a slug outside the provided taxonomy.");
+  }
+  return mergeEvaluation(diagnosis, match);
 }
 
 export async function generateLesson(prompt: string): Promise<MicroLesson> {

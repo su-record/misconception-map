@@ -1,5 +1,5 @@
 import type { TaxonomyEntry } from "./evaluation";
-import { languageInstruction, type Locale } from "../locale";
+import { languageInstruction, languageName, type Locale } from "../locale";
 
 export function questionPrompt(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, retry: boolean, locale: Locale) {
   const entries = taxonomy.map((item) => `${item.slug}: ${item.name} — ${item.description}`).join("\n") || "none";
@@ -8,9 +8,13 @@ export function questionPrompt(concept: string, taxonomy: TaxonomyEntry[], freeR
   return `${correction}Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. ${languageInstruction(locale, "the question prompt, choices, answer, and explanation")} ${contract} Never invent, modify, or reuse a slug outside this taxonomy:\n${entries}\nUse plain text math everywhere: write fractions as 3/4 and multiplication as × or the word times. Do not use LaTeX, backslash commands, or math delimiters. Return only the required structured result.`;
 }
 
-export function evaluationPrompt(question: string, answer: string, taxonomy: TaxonomyEntry[], locale: Locale) {
-  const entries = taxonomy.map((item) => `${item.slug}: ${item.name} — ${item.description}`).join("\n");
-  return `Analyze the student's thinking. ${languageInstruction(locale, "the rationale and follow-up probe")} First match it against the provided taxonomy by meaning, using matched_slug when any entry fits. Propose a new misconception only when no taxonomy entry fits. Write the rationale directly to the student in second person: explain why your thinking pattern leads you astray, without narrating answer options. In the rationale, use plain text math: write fractions as 3/4 and multiplication as × or the word times; do not use LaTeX, backslash commands, or math delimiters.\nQuestion: ${question}\nStudent answer: ${answer}\nTaxonomy:\n${entries}\nReturn only the required structured result.`;
+export function diagnosisPrompt(question: string, answer: string, locale: Locale) {
+  return `Diagnose whether the student's answer is correct and explain their thinking. ${languageInstruction(locale, "the rationale and follow-up probe")} Write directly to the student in second person: explain why your thinking pattern succeeds or leads you astray, without narrating answer options. Do not classify or name a taxonomy misconception. Use plain text math: write fractions as 3/4 and multiplication as × or the word times; do not use LaTeX, backslash commands, or math delimiters.\nQuestion: ${question}\nStudent answer: ${answer}\nReturn only is_correct, rationale, and followup_probe in the required structured result.`;
+}
+
+export function taxonomyMatchPrompt(question: string, answer: string, taxonomy: TaxonomyEntry[], locale: Locale) {
+  const entries = taxonomy.map((item) => `${item.slug}: ${item.name} — ${item.description}`).join("\n") || "none";
+  return `Match the student's thinking to this English taxonomy. The student's content is natively in ${languageName(locale)}. Use an exact provided slug when any description fits by meaning. Return matched_slug as null and propose a new English misconception only when nothing fits. Never invent or modify a slug. Do not write a rationale.\nQuestion: ${question}\nStudent answer: ${answer}\nTaxonomy:\n${entries}\nReturn only matched_slug and proposed_new in the required structured result.`;
 }
 
 export function lessonPrompt(name: string, description: string, locale: Locale) {

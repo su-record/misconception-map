@@ -1,7 +1,15 @@
-import type { AnswerEvaluation, GeneratedQuestion } from "./schemas";
+import type { AnswerEvaluation, Diagnosis, GeneratedQuestion, TaxonomyMatch } from "./schemas";
 import type { Locale } from "../locale";
 
 export type TaxonomyEntry = { slug: string; name: string; description: string };
+
+export function mergeEvaluation(diagnosis: Diagnosis, match: TaxonomyMatch): AnswerEvaluation {
+  const misconception = diagnosis.is_correct ? null : {
+    matched_slug: match.matched_slug,
+    proposed_new: match.matched_slug ? null : match.proposed_new,
+  };
+  return { ...diagnosis, misconception };
+}
 
 export function evaluateKnownChoice(question: GeneratedQuestion, answer: string, taxonomy: TaxonomyEntry[], locale: Locale = "en"): AnswerEvaluation | null {
   if (question.type !== "multiple_choice") return null;

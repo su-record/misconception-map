@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fixture from "../../../fixtures/pipeline.json";
-import { evaluateKnownChoice } from "./evaluation";
+import { evaluateKnownChoice, mergeEvaluation } from "./evaluation";
 import { questionSchema } from "./schemas";
 
 describe("evaluateKnownChoice", () => {
@@ -15,5 +15,13 @@ describe("evaluateKnownChoice", () => {
     expect(result?.is_correct).toBe(false);
     expect(result?.misconception).toEqual({ matched_slug: "multiplication-always-bigger", proposed_new: null });
     expect(result?.rationale).toMatch(/^You/);
+  });
+});
+
+describe("mergeEvaluation", () => {
+  it("uses luna taxonomy matching and terra diagnosis copy", () => {
+    const result = mergeEvaluation(fixture.diagnosis, fixture.taxonomy_match);
+
+    expect(result).toEqual(fixture.evaluation);
   });
 });
