@@ -1,7 +1,8 @@
 import type { TaxonomyEntry } from "./evaluation";
 
 export function questionPrompt(concept: string, misconceptions: string[], freeResponse: boolean) {
-  return `Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. Engineer distractors around: ${misconceptions.join(", ") || "common errors"}. Return only the required structured result.`;
+  const allowedSlugs = misconceptions.length ? misconceptions.join(", ") : "none";
+  return `Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. Engineer distractors around the provided taxonomy when relevant. Allowed misconception_slug values: ${allowedSlugs}. Every distractor's misconception_slug must be one of those exact values; if none fits, set misconception_slug to null. Never invent or modify a slug. Return only the required structured result.`;
 }
 
 export function evaluationPrompt(question: string, answer: string, taxonomy: TaxonomyEntry[]) {

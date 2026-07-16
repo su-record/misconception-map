@@ -62,8 +62,10 @@ function QuestionSkeleton() {
 function Feedback({ evaluation }: { evaluation: AnswerEvaluation }) {
   const slug = evaluation.misconception?.matched_slug;
   if (evaluation.is_correct) return <div className="mt-7 rounded-2xl border border-emerald-200/20 bg-emerald-200/[0.07] p-5"><p className="font-extrabold text-emerald-200">Correct — that idea is getting stronger.</p><p className="mt-1 text-sm text-emerald-50/70">{evaluation.rationale}</p></div>;
-  return <div className="mt-7 rounded-2xl border border-rose-400/20 bg-rose-400/[0.06] p-5"><span className="inline-flex rounded-full bg-rose-400/15 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-rose-300">{slug ? slug.replaceAll("-", " ") : "New misconception"}</span><p className="mt-3 text-sm leading-relaxed text-rose-50/75">{evaluation.rationale}</p></div>;
+  return <div className="mt-7 rounded-2xl border border-rose-400/20 bg-rose-400/[0.06] p-5"><span className="inline-flex rounded-full bg-rose-400/15 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-rose-300">{slug ? humanizeSlug(slug) : "New misconception"}</span><p className="mt-3 text-sm leading-relaxed text-rose-50/75">{evaluation.rationale}</p></div>;
 }
+
+function humanizeSlug(slug: string) { return slug.replace(/[-_]+/g, " "); }
 
 function Summary({ lesson, onRestart }: { lesson?: MicroLesson; onRestart: () => void }) {
   return <section className="rounded-[28px] border border-emerald-200/15 bg-[#111A2E] p-10 shadow-[0_24px_80px_rgba(0,0,0,0.28)]"><p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">Session complete</p><h2 className="mt-3 text-4xl font-black tracking-tight text-white">Your map got updated.</h2><p className="mt-4 text-slate-400">Six pieces of evidence made your learning map more precise. Here is today&apos;s lesson for your strongest pattern.</p>{lesson ? <article className="prose prose-invert mt-8 max-w-none rounded-2xl border border-white/[0.07] bg-[#0D1628] p-8 prose-headings:text-white prose-strong:text-teal-200"><h2>{lesson.title}</h2><ReactMarkdown>{lesson.content_md}</ReactMarkdown></article> : null}<button className="mt-8 rounded-xl bg-teal-300 px-6 py-3 font-extrabold text-[#08131d]" onClick={onRestart}>Practice again</button></section>;
