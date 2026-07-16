@@ -5,7 +5,7 @@
     "choices": [
       { "label": "A", "text": "3/8", "misconception_slug": null },
       { "label": "B", "text": "3/2", "misconception_slug": "multiplication-always-bigger" },
-      { "label": "C", "text": "4/6", "misconception_slug": "add-straight-across" }
+      { "label": "C", "text": "4/6", "misconception_slug": null }
     ],
     "correct_answer": "A",
     "explanation": "Half of three-fourths is three-eighths."

@@ -1,8 +1,10 @@
 import type { TaxonomyEntry } from "./evaluation";
 
-export function questionPrompt(concept: string, misconceptions: string[], freeResponse: boolean) {
-  const allowedSlugs = misconceptions.length ? misconceptions.join(", ") : "none";
-  return `Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. Engineer distractors around the provided taxonomy when relevant. Allowed misconception_slug values: ${allowedSlugs}. Every distractor's misconception_slug must be one of those exact values; if none fits, set misconception_slug to null. Never invent or modify a slug. Return only the required structured result.`;
+export function questionPrompt(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, retry: boolean) {
+  const entries = taxonomy.map((item) => `${item.slug}: ${item.name} — ${item.description}`).join("\n") || "none";
+  const contract = freeResponse || taxonomy.length === 0 ? "Use null for every misconception_slug." : "You MUST engineer at least one incorrect distractor around one provided misconception and tag it with that exact slug. Other distractors may use null. The correct answer MUST use null.";
+  const correction = retry ? "Your previous result violated the tag contract. Correct it now. " : "";
+  return `${correction}Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. ${contract} Never invent, modify, or reuse a slug outside this taxonomy:\n${entries}\nReturn only the required structured result.`;
 }
 
 export function evaluationPrompt(question: string, answer: string, taxonomy: TaxonomyEntry[]) {
