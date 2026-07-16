@@ -34,6 +34,8 @@ const insertEdge = db.prepare("INSERT INTO concept_edges VALUES (?, ?)");
 edges.forEach(([from, to]) => insertEdge.run(conceptIds.get(from), conceptIds.get(to)));
 
 const misconceptions = [
+  ["fraction-meaning", "count-parts-not-whole", "Count parts without defining the whole", "Treats numerator and denominator as counts without relating selected equal parts to one whole."],
+  ["number-line", "two-whole-number-positions", "Two whole-number positions", "Places the numerator and denominator as separate whole-number points instead of locating one fractional magnitude."],
   ["equivalence", "same-numbers-same-value", "Only identical fractions are equivalent", "Assumes equivalent fractions must look identical."],
   ["comparison", "larger-denominator-larger", "A larger denominator means a larger fraction", "Compares denominator digits instead of unit sizes."],
   ["simplifying", "subtract-to-simplify", "Simplify by subtracting", "Subtracts the same number from numerator and denominator."],
@@ -46,6 +48,7 @@ const misconceptions = [
   ["division", "divide-straight-across", "Divide straight across", "Divides corresponding numerator and denominator without reasoning about the quotient."],
   ["division-by-fraction", "division-always-smaller", "Division always makes smaller", "Expects every quotient to be smaller than the dividend."],
   ["reciprocals", "flip-first-fraction", "Flip the first fraction", "Inverts the dividend rather than the divisor."],
+  ["word-problems", "keyword-operation", "Choose an operation by keywords", "Selects an operation from isolated cue words instead of reasoning about relationships between quantities."],
 ] as const;
 const insertMisconception = db.prepare("INSERT INTO misconceptions (concept_id, slug, name, description) VALUES (?, ?, ?, ?)");
 misconceptions.forEach(([concept, ...values]) => insertMisconception.run(conceptIds.get(concept), ...values));
