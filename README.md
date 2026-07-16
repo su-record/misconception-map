@@ -2,6 +2,10 @@
 
 Misconception Map is an AI fractions tutor that turns wrong answers into a living learning graph. Students get targeted daily practice and micro-lessons; teachers see shared misconception patterns across the class.
 
+## Live demo
+
+Visit [mismap.sutory.ai](https://mismap.sutory.ai) — public, no login required, and rate-limited against abuse. Judges can use the live demo or follow the local setup below; local runs without an API key use recorded fixtures through the same pipeline.
+
 ## Judge setup
 
 Requirements: Node.js 20+ and an optional OpenAI API key.
