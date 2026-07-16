@@ -5,14 +5,14 @@ import { fixtureEvaluation, fixtureLesson, fixtureQuestion } from "./fixtures";
 import { evaluationSchema, lessonSchema, questionSchema, type AnswerEvaluation, type GeneratedQuestion, type MicroLesson } from "./schemas";
 
 type CallProfile = {
-  model: "gpt-5.6" | "gpt-5.6-luna";
+  model: "gpt-5.6" | "gpt-5.6-terra";
   reasoningEffort: "low" | "high";
   timeout: number;
 };
 
 const INTERACTIVE_PROFILE: CallProfile = {
-  model: "gpt-5.6-luna",
-  reasoningEffort: "low",
+  model: "gpt-5.6-terra",
+  reasoningEffort: "high",
   timeout: 5_000,
 };
 const LESSON_PROFILE: CallProfile = {
