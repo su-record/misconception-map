@@ -5,3 +5,8 @@ node_modules/
 *.log
 dist/
 .DS_Store
+node_modules/
+.next/
+data/*.db
+*.tsbuildinfo
+.env*
