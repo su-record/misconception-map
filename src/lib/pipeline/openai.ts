@@ -13,7 +13,7 @@ type CallProfile = {
 const INTERACTIVE_PROFILE: CallProfile = {
   model: "gpt-5.6-terra",
   reasoningEffort: "xhigh",
-  timeout: 5_000,
+  timeout: 30_000,
 };
 const LESSON_PROFILE: CallProfile = {
   model: "gpt-5.6",
