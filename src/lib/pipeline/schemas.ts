@@ -1,9 +1,14 @@
 import { z } from "zod";
 
+const nullableSlugSchema = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? null : value,
+  z.string().nullable(),
+);
+
 export const questionSchema = z.object({
   prompt: z.string().min(1),
   type: z.enum(["multiple_choice", "free_response"]),
-  choices: z.array(z.object({ label: z.string(), text: z.string(), misconception_slug: z.string().nullable() })),
+  choices: z.array(z.object({ label: z.string(), text: z.string(), misconception_slug: nullableSlugSchema })),
   correct_answer: z.string().min(1),
   explanation: z.string().min(1),
 });
@@ -12,7 +17,7 @@ const proposedMisconceptionSchema = z.object({ name: z.string().min(1), descript
 export const evaluationSchema = z.object({
   is_correct: z.boolean(),
   misconception: z.object({
-    matched_slug: z.string().nullable(),
+    matched_slug: nullableSlugSchema,
     proposed_new: proposedMisconceptionSchema.nullable(),
   }).nullable(),
   rationale: z.string().min(1),

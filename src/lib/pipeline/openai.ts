@@ -21,7 +21,7 @@ const LESSON_PROFILE: CallProfile = {
   timeout: 60_000,
 };
 
-async function structuredCall<T>(name: string, schema: z.ZodType<T>, prompt: string, profile: CallProfile) {
+async function structuredCall<T>(name: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>, prompt: string, profile: CallProfile) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 1, timeout: profile.timeout });
   const response = await client.responses.parse({
     model: profile.model,

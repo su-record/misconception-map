@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import fixture from "../../../fixtures/pipeline.json";
-import { generateValidatedQuestion } from "./questions";
+import { generateValidatedQuestion, validTaxonomyTags } from "./questions";
 import { questionSchema } from "./schemas";
 
 describe("generateValidatedQuestion", () => {
@@ -14,5 +14,11 @@ describe("generateValidatedQuestion", () => {
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.choices.some((choice) => choice.misconception_slug === taxonomy[0].slug)).toBe(true);
+  });
+
+  it("rejects a non-empty slug outside the taxonomy", () => {
+    const question = questionSchema.parse({ ...fixture.question, choices: fixture.question.choices.map((choice, index) => index === 2 ? { ...choice, misconception_slug: "invented-slug" } : choice) });
+    const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
+    expect(validTaxonomyTags(question, taxonomy, false)).toBe(false);
   });
 });

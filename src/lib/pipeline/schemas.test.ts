@@ -12,4 +12,11 @@ describe("structured extraction schemas", () => {
   it("rejects ambiguous evaluation output", () => {
     expect(() => evaluationSchema.parse({ is_correct: "maybe", rationale: "" })).toThrow();
   });
+
+  it("normalizes empty slug strings to null", () => {
+    const question = questionSchema.parse({ ...fixture.question, choices: fixture.question.choices.map((choice) => ({ ...choice, misconception_slug: "  " })) });
+    const evaluation = evaluationSchema.parse({ ...fixture.evaluation, misconception: { matched_slug: "", proposed_new: null } });
+    expect(question.choices.every((choice) => choice.misconception_slug === null)).toBe(true);
+    expect(evaluation.misconception?.matched_slug).toBeNull();
+  });
 });
