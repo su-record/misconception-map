@@ -16,25 +16,44 @@ export default function LearnPage() {
   const [complete, setComplete] = useState(false);
   const [lesson, setLesson] = useState<MicroLesson>();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
   useEffect(() => { void start(studentId); }, [studentId]);
 
   async function start(id: number) {
-    setBusy(true); setSession(undefined); setComplete(false); setNumber(1); setFeedback(undefined); setLesson(undefined);
-    setSession(await fetch(`/api/session?studentId=${id}`).then((response) => response.json()) as SessionData);
-    setBusy(false);
+    setBusy(true); setError(undefined); setSession(undefined); setComplete(false); setNumber(1); setFeedback(undefined); setLesson(undefined);
+    try { setSession(await requestJson<SessionData>(`/api/session?studentId=${id}`)); }
+    catch (cause) { setError(errorMessage(cause)); }
+    finally { setBusy(false); }
   }
 
   async function submit() {
     if (!session || !answer.trim()) return;
-    setBusy(true); setFeedback(undefined);
-    const result = await fetch("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, studentId, conceptId: session.concept.id, question: session.question, answer, questionNumber: number }) }).then((response) => response.json()) as { evaluation: AnswerEvaluation; complete: boolean; concept?: SessionData["concept"]; question?: GeneratedQuestion; lesson?: MicroLesson };
-    setFeedback(result.evaluation); setComplete(result.complete); setLesson(result.lesson); setAnswer("");
-    if (result.concept && result.question) setSession({ ...session, concept: result.concept, question: result.question });
-    setNumber((value) => value + 1); setBusy(false);
+    setBusy(true); setError(undefined); setFeedback(undefined);
+    try {
+      const result = await requestJson<{ evaluation: AnswerEvaluation; complete: boolean; concept?: SessionData["concept"]; question?: GeneratedQuestion; lesson?: MicroLesson }>("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, studentId, conceptId: session.concept.id, question: session.question, answer, questionNumber: number }) });
+      setFeedback(result.evaluation); setComplete(result.complete); setLesson(result.lesson); setAnswer("");
+      if (result.concept && result.question) setSession({ ...session, concept: result.concept, question: result.question });
+      setNumber((value) => value + 1);
+    } catch (cause) { setError(errorMessage(cause)); }
+    finally { setBusy(false); }
   }
 
-  return <main className="mx-auto max-w-4xl px-8 py-14"><PageHeader session={session} studentId={studentId} onStudentChange={setStudentId} />{complete ? <Summary lesson={lesson} onRestart={() => void start(studentId)} /> : !session ? <QuestionSkeleton /> : <QuestionCard answer={answer} busy={busy} feedback={feedback} number={number} onAnswer={setAnswer} onSubmit={() => void submit()} session={session} />}</main>;
+  return <main className="mx-auto max-w-4xl px-8 py-14"><PageHeader session={session} studentId={studentId} onStudentChange={setStudentId} />{error ? <ErrorPanel message={error} onRetry={() => void start(studentId)} /> : complete ? <Summary lesson={lesson} onRestart={() => void start(studentId)} /> : !session ? <QuestionSkeleton /> : <QuestionCard answer={answer} busy={busy} feedback={feedback} number={number} onAnswer={setAnswer} onSubmit={() => void submit()} session={session} />}</main>;
 }
+
+async function requestJson<T>(input: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(input, init);
+  const payload = await response.json() as unknown;
+  if (!response.ok) throw new Error(readError(payload));
+  return payload as T;
+}
+
+function readError(payload: unknown) {
+  if (typeof payload === "object" && payload !== null && "error" in payload && typeof payload.error === "string") return payload.error;
+  return "We couldn’t reach the tutor just now. Please try again.";
+}
+
+function errorMessage(cause: unknown) { return cause instanceof Error ? cause.message : "We couldn’t reach the tutor just now. Please try again."; }
 
 function PageHeader({ session, studentId, onStudentChange }: { session?: SessionData; studentId: number; onStudentChange: (id: number) => void }) {
   return <div className="mb-10 flex items-end justify-between"><div><p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-teal-300">Daily practice</p><h1 className="text-4xl font-black tracking-[-0.04em] text-white">Learn from your thinking</h1><p className="mt-3 text-slate-400">Every answer makes your learning map more precise.</p></div><select className="rounded-xl border border-white/10 bg-[#111A2E] px-4 py-3 text-sm font-semibold text-slate-200" value={studentId} onChange={(event) => onStudentChange(Number(event.target.value))}>{session?.students.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}</select></div>;
@@ -57,6 +76,10 @@ function ThinkingState() {
 
 function QuestionSkeleton() {
   return <section className="rounded-[28px] border border-white/[0.08] bg-[#111A2E] p-9"><div className="flex gap-2">{Array.from({ length: 6 }, (_, index) => <span className="h-2 w-2 rounded-full bg-white/10" key={index} />)}</div><div className="mt-10 h-5 w-32 animate-pulse rounded-full bg-teal-300/10" /><div className="mt-6 h-7 w-4/5 animate-pulse rounded-lg bg-white/10" /><div className="mt-3 h-7 w-2/3 animate-pulse rounded-lg bg-white/[0.06]" /><ThinkingState /></section>;
+}
+
+function ErrorPanel({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return <section className="rounded-[28px] border border-amber-300/20 bg-[#111A2E] p-9"><span className="inline-flex rounded-full bg-amber-300/10 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-amber-200">Demo limit</span><h2 className="mt-5 text-2xl font-black text-white">The tutor needs a short break.</h2><p className="mt-3 max-w-2xl leading-relaxed text-slate-400">{message}</p><button className="mt-7 rounded-xl border border-white/10 bg-white/[0.05] px-5 py-3 text-sm font-bold text-slate-200 hover:bg-white/10" onClick={onRetry}>Try again</button></section>;
 }
 
 function Feedback({ evaluation }: { evaluation: AnswerEvaluation }) {

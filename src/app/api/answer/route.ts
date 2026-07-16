@@ -8,8 +8,11 @@ import { storeAnswer } from "@/lib/pipeline/session";
 import { createTargetedLesson } from "@/lib/pipeline/lessons";
 import { evaluateKnownChoice, type TaxonomyEntry } from "@/lib/pipeline/evaluation";
 import { generateValidatedQuestion } from "@/lib/pipeline/questions";
+import { enforceLlmRateLimit } from "@/lib/api-rate-limit";
 
 export async function POST(request: Request) {
+  const limited = enforceLlmRateLimit(request);
+  if (limited) return limited;
   const body = await request.json() as { sessionId: number; studentId: number; conceptId: number; question: unknown; answer: string; questionNumber: number };
   const db = getDb();
   const question = questionSchema.parse(body.question);

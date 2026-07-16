@@ -22,7 +22,15 @@ npm run seed
 npm run dev
 ```
 
-Without `OPENAI_API_KEY`, recorded question, evaluation, and micro-lesson fixtures pass through the same schemas and persistence paths. Seed data includes 15 middle-school fraction concepts, 12 classic misconceptions, 8 students, and historical answer evidence.
+Without `OPENAI_API_KEY`, recorded question, evaluation, and micro-lesson fixtures pass through the same schemas and persistence paths. Seed data includes 15 middle-school fraction concepts, 15 classic misconceptions, 8 students, and historical answer evidence.
+
+For a public single-process demo, enable the read-only seeded roster mode:
+
+```bash
+DEMO_MODE=1 OPENAI_API_KEY=your_key npm run dev
+```
+
+Live-key API requests are limited to 30 per IP and 300 globally per rolling hour. `DEMO_MODE` exposes only the existing seeded roster; there is no web seed or roster-mutation endpoint. Seeding remains a local CLI operation.
 
 ## Demo routes
 

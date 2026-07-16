@@ -3,10 +3,14 @@ import { getDb } from "@/lib/db";
 import { selectNextConcept } from "@/lib/pipeline/selection";
 import { generateValidatedQuestion } from "@/lib/pipeline/questions";
 import type { TaxonomyEntry } from "@/lib/pipeline/evaluation";
+import { enforceLlmRateLimit } from "@/lib/api-rate-limit";
+import { isDemoMode } from "@/lib/demo";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const limited = enforceLlmRateLimit(request);
+  if (limited) return limited;
   const db = getDb();
   const studentId = Number(new URL(request.url).searchParams.get("studentId") ?? 1);
   const concept = selectNextConcept(db, studentId);
@@ -14,5 +18,5 @@ export async function GET(request: Request) {
   const question = await generateValidatedQuestion(concept.name, taxonomy, false);
   const session = db.prepare("INSERT INTO sessions (student_id, started_at) VALUES (?, ?)").run(studentId, new Date().toISOString());
   const students = db.prepare("SELECT id, name FROM students ORDER BY id").all();
-  return NextResponse.json({ students, sessionId: Number(session.lastInsertRowid), concept, question });
+  return NextResponse.json({ students, sessionId: Number(session.lastInsertRowid), concept, question, demoMode: isDemoMode() });
 }
