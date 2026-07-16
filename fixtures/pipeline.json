@@ -13,7 +13,7 @@
   "evaluation": {
     "is_correct": false,
     "misconception": { "matched_slug": "multiplication-always-bigger", "proposed_new": null },
-    "rationale": "The answer assumes multiplication must increase the starting value.",
+    "rationale": "You are assuming multiplication must increase the starting value, but multiplying by a proper fraction takes only part of it and can make the result smaller.",
     "followup_probe": "What happens when you take one-half of a quantity?"
   },
   "lesson": {

@@ -6,13 +6,15 @@ import { questionSchema } from "@/lib/pipeline/schemas";
 import { selectNextConcept } from "@/lib/pipeline/selection";
 import { storeAnswer } from "@/lib/pipeline/session";
 import { createTargetedLesson } from "@/lib/pipeline/lessons";
+import { evaluateKnownChoice, type TaxonomyEntry } from "@/lib/pipeline/evaluation";
 
 export async function POST(request: Request) {
   const body = await request.json() as { sessionId: number; studentId: number; conceptId: number; question: unknown; answer: string; questionNumber: number };
   const db = getDb();
   const question = questionSchema.parse(body.question);
-  const taxonomy = db.prepare("SELECT slug FROM misconceptions WHERE concept_id = ?").all(body.conceptId) as { slug: string }[];
-  const evaluation = await evaluateAnswer(evaluationPrompt(question.prompt, body.answer, taxonomy.map((item) => item.slug)));
+  const taxonomy = db.prepare("SELECT slug, name, description FROM misconceptions WHERE concept_id = ?").all(body.conceptId) as TaxonomyEntry[];
+  const evaluation = evaluateKnownChoice(question, body.answer, taxonomy)
+    ?? await evaluateAnswer(evaluationPrompt(question.prompt, body.answer, taxonomy));
   storeAnswer(db, { ...body, question, evaluation });
   if (body.questionNumber >= 6) {
     db.prepare("UPDATE sessions SET completed_at = ? WHERE id = ?").run(new Date().toISOString(), body.sessionId);
