@@ -16,7 +16,7 @@ npm run seed
 OPENAI_API_KEY=your_key npm run dev
 ```
 
-Open [http://localhost:3000/learn](http://localhost:3000/learn). OpenAI SDK 6 uses the native-fetch Responses API with Zod-backed structured outputs. Questions and micro-lessons use craft-focused `gpt-5.6` (sol) with `xhigh` reasoning. Free-text evaluation runs two calls in parallel: `gpt-5.6-terra` at `xhigh` writes the diagnosis, while fast `gpt-5.6-luna` at `low` matches the taxonomy; tagged choices remain deterministic. The next question is prefetched per session, and transient API failures are retried once within bounded timeouts.
+Open [http://localhost:3000/learn](http://localhost:3000/learn). OpenAI SDK 6 uses the native-fetch Responses API with Zod-backed structured outputs. Interactive and non-English questions use `gpt-5.6-terra` at `xhigh`; only prefetched English questions use craft-focused `gpt-5.6` (sol) at `xhigh`, with a 45-second timeout and terra fallback. Micro-lessons stay on sol at `xhigh` for every language. Free-text evaluation runs two calls in parallel: terra writes the diagnosis, while fast `gpt-5.6-luna` at `low` matches the taxonomy; tagged choices remain deterministic. Transient API failures are retried once within bounded timeouts.
 
 No API key is required for the complete demo path:
 

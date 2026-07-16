@@ -10,7 +10,7 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(untagged).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary: generate });
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { delivery: "prefetch", sol: generate });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.choices.some((choice) => choice.misconception_slug === taxonomy[0].slug)).toBe(true);
@@ -28,7 +28,7 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(latex).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary: generate });
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { delivery: "prefetch", sol: generate });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.prompt).not.toContain("\\");
@@ -37,17 +37,33 @@ describe("generateValidatedQuestion", () => {
   it("falls through two sol attempts to terra, then the fixture", async () => {
     const valid = questionSchema.parse(fixture.question);
     const invalid = { ...valid, choices: valid.choices.map((choice) => ({ ...choice, misconception_slug: null })) };
-    const primary = vi.fn().mockRejectedValueOnce(new Error("sol unavailable")).mockResolvedValueOnce(invalid);
-    const fallback = vi.fn().mockResolvedValue(invalid);
+    const sol = vi.fn().mockRejectedValueOnce(new Error("sol unavailable")).mockResolvedValueOnce(invalid);
+    const terra = vi.fn().mockResolvedValue(invalid);
     const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary, fallback });
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { delivery: "prefetch", sol, terra });
 
-    expect(primary).toHaveBeenCalledTimes(2);
-    expect(fallback).toHaveBeenCalledTimes(1);
+    expect(sol).toHaveBeenCalledTimes(2);
+    expect(terra).toHaveBeenCalledTimes(1);
     expect(result).toEqual(valid);
     expect(warning).toHaveBeenCalledOnce();
     warning.mockRestore();
+  });
+
+  it.each([
+    { delivery: "interactive" as const, locale: "en" as const },
+    { delivery: "prefetch" as const, locale: "ko" as const },
+  ])("routes $delivery $locale questions directly to terra", async ({ delivery, locale }) => {
+    const valid = questionSchema.parse(fixture.question);
+    const sol = vi.fn().mockResolvedValue(valid);
+    const terra = vi.fn().mockResolvedValue(valid);
+    const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
+
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, locale, { delivery, sol, terra });
+
+    expect(result).toEqual(valid);
+    expect(sol).not.toHaveBeenCalled();
+    expect(terra).toHaveBeenCalledOnce();
   });
 });

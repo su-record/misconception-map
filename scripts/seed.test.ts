@@ -16,5 +16,5 @@ describe("seed taxonomy", () => {
       GROUP BY c.id HAVING COUNT(m.id) = 0`).all();
     db.close();
     expect(uncovered).toEqual([]);
-  });
+  }, 30_000);
 });

@@ -6,22 +6,25 @@ import type { GeneratedQuestion } from "./schemas";
 import type { Locale } from "../locale";
 
 type QuestionGenerator = (prompt: string) => Promise<GeneratedQuestion>;
-type QuestionGenerators = { primary?: QuestionGenerator; fallback?: QuestionGenerator };
+type QuestionOptions = {
+  delivery?: "interactive" | "prefetch";
+  sol?: QuestionGenerator;
+  terra?: QuestionGenerator;
+};
 
-export async function generateValidatedQuestion(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, locale: Locale, generators: QuestionGenerators = {}) {
-  if (!process.env.OPENAI_API_KEY && !generators.primary && !generators.fallback) return fixtureQuestion;
-  const primary = generators.primary ?? generateQuestion;
-  const fallback = generators.fallback ?? generateQuestionWithTerra;
-  const attempts = [
-    { generate: primary, retry: false },
-    { generate: primary, retry: true },
-    { generate: fallback, retry: true },
-  ];
+export async function generateValidatedQuestion(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, locale: Locale, options: QuestionOptions = {}) {
+  if (!process.env.OPENAI_API_KEY && !options.sol && !options.terra) return fixtureQuestion;
+  const sol = options.sol ?? generateQuestion;
+  const terra = options.terra ?? generateQuestionWithTerra;
+  const useSol = options.delivery === "prefetch" && locale === "en";
+  const attempts = useSol
+    ? [{ generate: sol, retry: false }, { generate: sol, retry: true }, { generate: terra, retry: true }]
+    : [{ generate: terra, retry: false }];
   for (const attempt of attempts) {
     const question = await tryQuestion(attempt.generate, questionPrompt(concept, taxonomy, freeResponse, attempt.retry, locale));
     if (question && validQuestionContract(question, taxonomy, freeResponse)) return question;
   }
-  console.warn("[pipeline] Question generation exhausted sol and terra; using the recorded fixture.");
+  console.warn("[pipeline] Question generation exhausted its model route; using the recorded fixture.");
   return fixtureQuestion;
 }
 

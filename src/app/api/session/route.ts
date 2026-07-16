@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const locale = contentLocale(searchParams.get("locale"));
   const concept = selectNextConcept(db, studentId);
   const taxonomy = db.prepare("SELECT slug, name, description FROM misconceptions WHERE concept_id = ?").all(concept.id) as TaxonomyEntry[];
-  const question = await generateValidatedQuestion(concept.name, taxonomy, false, locale);
+  const question = await generateValidatedQuestion(concept.name, taxonomy, false, locale, { delivery: "interactive" });
   const session = db.prepare("INSERT INTO sessions (student_id, started_at) VALUES (?, ?)").run(studentId, new Date().toISOString());
   const sessionId = Number(session.lastInsertRowid);
   startQuestionPrefetch(sessionId, studentId, 2, locale);

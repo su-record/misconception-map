@@ -16,7 +16,7 @@ type CallProfile = {
 const QUESTION_PROFILE: CallProfile = {
   model: "gpt-5.6",
   reasoningEffort: "xhigh",
-  timeout: 60_000,
+  timeout: 45_000,
 };
 const DIAGNOSIS_PROFILE: CallProfile = {
   model: "gpt-5.6-terra",

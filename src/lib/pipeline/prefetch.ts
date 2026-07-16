@@ -19,7 +19,7 @@ const cache = globalPrefetch.questionPrefetch ??= new Map<number, CacheEntry>();
 
 export function startQuestionPrefetch(sessionId: number, studentId: number, questionNumber: number, locale: Locale) {
   if (questionNumber > 6) return;
-  const promise = generateNextQuestion(studentId, questionNumber, locale).catch(() => null);
+  const promise = generateNextQuestion(studentId, questionNumber, locale, "prefetch").catch(() => null);
   const entry = { questionNumber, locale, expiresAt: Date.now() + CACHE_TTL_MS, promise };
   cache.set(sessionId, entry);
   void promise.then((result) => {
@@ -37,10 +37,10 @@ export async function takePrefetchedQuestion(sessionId: number, questionNumber: 
   return entry.promise;
 }
 
-export async function generateNextQuestion(studentId: number, questionNumber: number, locale: Locale): Promise<PrefetchedQuestion> {
+export async function generateNextQuestion(studentId: number, questionNumber: number, locale: Locale, delivery: "interactive" | "prefetch" = "interactive"): Promise<PrefetchedQuestion> {
   const db = getDb();
   const concept = selectNextConcept(db, studentId);
   const taxonomy = db.prepare("SELECT slug, name, description FROM misconceptions WHERE concept_id = ?").all(concept.id) as TaxonomyEntry[];
-  const question = await generateValidatedQuestion(concept.name, taxonomy, questionNumber === 6, locale);
+  const question = await generateValidatedQuestion(concept.name, taxonomy, questionNumber === 6, locale, { delivery });
   return { concept, question };
 }
