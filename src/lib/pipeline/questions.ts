@@ -7,10 +7,19 @@ type QuestionGenerator = (prompt: string) => Promise<GeneratedQuestion>;
 
 export async function generateValidatedQuestion(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, generate: QuestionGenerator = generateQuestion) {
   const first = await generate(questionPrompt(concept, taxonomy, freeResponse, false));
-  if (validTaxonomyTags(first, taxonomy, freeResponse)) return first;
+  if (validQuestionContract(first, taxonomy, freeResponse)) return first;
   const retry = await generate(questionPrompt(concept, taxonomy, freeResponse, true));
-  if (validTaxonomyTags(retry, taxonomy, freeResponse)) return retry;
-  throw new Error("Question generation failed the misconception tag contract after one retry.");
+  if (validQuestionContract(retry, taxonomy, freeResponse)) return retry;
+  throw new Error("Question generation failed its output contract after one retry.");
+}
+
+function validQuestionContract(question: GeneratedQuestion, taxonomy: TaxonomyEntry[], freeResponse: boolean) {
+  return validTaxonomyTags(question, taxonomy, freeResponse) && validPlainTextMath(question);
+}
+
+function validPlainTextMath(question: GeneratedQuestion) {
+  const text = [question.prompt, question.correct_answer, question.explanation, ...question.choices.flatMap((choice) => [choice.label, choice.text])];
+  return text.every((value) => !value.includes("\\"));
 }
 
 export function validTaxonomyTags(question: GeneratedQuestion, taxonomy: TaxonomyEntry[], freeResponse: boolean) {
