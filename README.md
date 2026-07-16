@@ -1,22 +1,42 @@
 # Misconception Map
 
-> An AI tutor that turns students' wrong answers into a living map of misconceptions — and teaches to fix them.
+Misconception Map is an AI fractions tutor that turns wrong answers into a living learning graph. Students get targeted daily practice and micro-lessons; teachers see shared misconception patterns across the class.
 
-Built for **OpenAI Build Week 2026** (Education track) with **Codex + GPT-5.6**.
+## Judge setup
 
-## What it does
+Requirements: Node.js 20+ and an optional OpenAI API key.
 
-- **Students** take a short daily diagnostic conversation. Wrong answers aren't just marked incorrect — GPT-5.6 extracts the *underlying misconception* and stores it as a node in a per-student knowledge graph.
-- **Next-day micro-lessons** are generated from the graph, targeting the weakest concept — not a generic curriculum.
-- **Teachers** get a class-wide misconception dashboard: "14 of 23 students share the same misconception about X."
+```bash
+npm install
+npm run seed
+OPENAI_API_KEY=your_key npm run dev
+```
 
-## Stack (planned)
+Open [http://localhost:3000/learn](http://localhost:3000/learn). The app uses `gpt-5.6` for every live LLM call, with Zod-backed structured outputs.
 
-- Next.js 15 + TypeScript + Tailwind, D3 force-directed graph
-- PostgreSQL + Apache AGE (graph) + pgvector (similarity)
-- GPT-5.6 structured outputs for misconception extraction & lesson generation
-- Built end-to-end with Codex
+No API key is required for the complete demo path:
 
-## Development
+```bash
+npm install
+npm run seed
+npm run dev
+```
 
-_TBD — setup instructions will land here with the first working version._
+Without `OPENAI_API_KEY`, recorded question, evaluation, and micro-lesson fixtures pass through the same schemas and persistence paths. Seed data includes 15 middle-school fraction concepts, 12 classic misconceptions, 8 students, and historical answer evidence.
+
+## Demo routes
+
+- `/learn` — six-question student session with immediate feedback and a targeted micro-lesson
+- `/map` — interactive personal D3 misconception map with evidence details
+- `/teacher` — ranked class patterns, mastery sparklines, and merged class graph
+
+Use the student picker to switch profiles. Run `npm run seed` at any time to restore deterministic sample data.
+
+## Verification
+
+```bash
+npm run build
+npm test
+```
+
+Data is stored locally in `data/mismap.db` using plain SQL migrations. No external database, authentication, or deployment service is required.

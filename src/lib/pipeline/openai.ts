@@ -1,11 +1,12 @@
 import OpenAI from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
-import { fixtureEvaluation, fixtureQuestion } from "./fixtures";
-import { evaluationSchema, questionSchema, type AnswerEvaluation, type GeneratedQuestion } from "./schemas";
+import type { z } from "zod";
+import { fixtureEvaluation, fixtureLesson, fixtureQuestion } from "./fixtures";
+import { evaluationSchema, lessonSchema, questionSchema, type AnswerEvaluation, type GeneratedQuestion, type MicroLesson } from "./schemas";
 
 const MODEL = "gpt-5.6";
 
-async function structuredCall<T>(name: string, schema: typeof questionSchema | typeof evaluationSchema, prompt: string) {
+async function structuredCall<T>(name: string, schema: z.ZodType<T>, prompt: string) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const response = await client.beta.chat.completions.parse({
     model: MODEL,
@@ -25,4 +26,9 @@ export async function generateQuestion(prompt: string): Promise<GeneratedQuestio
 export async function evaluateAnswer(prompt: string): Promise<AnswerEvaluation> {
   if (!process.env.OPENAI_API_KEY) return fixtureEvaluation;
   return structuredCall<AnswerEvaluation>("answer_evaluation", evaluationSchema, prompt);
+}
+
+export async function generateLesson(prompt: string): Promise<MicroLesson> {
+  if (!process.env.OPENAI_API_KEY) return fixtureLesson;
+  return structuredCall<MicroLesson>("micro_lesson", lessonSchema, prompt);
 }

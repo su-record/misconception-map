@@ -19,5 +19,11 @@ export const evaluationSchema = z.object({
   followup_probe: z.string().nullable(),
 });
 
+export const lessonSchema = z.object({
+  title: z.string().min(1),
+  content_md: z.string().min(200),
+});
+
 export type GeneratedQuestion = z.infer<typeof questionSchema>;
 export type AnswerEvaluation = z.infer<typeof evaluationSchema>;
+export type MicroLesson = z.infer<typeof lessonSchema>;

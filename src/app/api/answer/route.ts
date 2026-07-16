@@ -5,6 +5,7 @@ import { evaluationPrompt, questionPrompt } from "@/lib/pipeline/prompts";
 import { questionSchema } from "@/lib/pipeline/schemas";
 import { selectNextConcept } from "@/lib/pipeline/selection";
 import { storeAnswer } from "@/lib/pipeline/session";
+import { createTargetedLesson } from "@/lib/pipeline/lessons";
 
 export async function POST(request: Request) {
   const body = await request.json() as { sessionId: number; studentId: number; conceptId: number; question: unknown; answer: string; questionNumber: number };
@@ -15,7 +16,8 @@ export async function POST(request: Request) {
   storeAnswer(db, { ...body, question, evaluation });
   if (body.questionNumber >= 6) {
     db.prepare("UPDATE sessions SET completed_at = ? WHERE id = ?").run(new Date().toISOString(), body.sessionId);
-    return NextResponse.json({ evaluation, complete: true });
+    const lesson = await createTargetedLesson(db, body.studentId);
+    return NextResponse.json({ evaluation, complete: true, lesson });
   }
   const concept = selectNextConcept(db, body.studentId);
   const nextTaxonomy = db.prepare("SELECT slug FROM misconceptions WHERE concept_id = ?").all(concept.id) as { slug: string }[];
