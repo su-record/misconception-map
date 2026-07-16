@@ -52,19 +52,34 @@ export async function generateQuestion(prompt: string): Promise<GeneratedQuestio
   return structuredCall<GeneratedQuestion>("fraction_question", questionSchema, prompt, QUESTION_PROFILE);
 }
 
+export async function generateQuestionWithTerra(prompt: string): Promise<GeneratedQuestion> {
+  if (!process.env.OPENAI_API_KEY) return fixtureQuestion;
+  return structuredCall<GeneratedQuestion>("fraction_question_fallback", questionSchema, prompt, DIAGNOSIS_PROFILE);
+}
+
 export async function evaluateAnswer(question: string, answer: string, taxonomy: TaxonomyEntry[], locale: Locale): Promise<AnswerEvaluation> {
   if (!process.env.OPENAI_API_KEY) return mergeEvaluation(fixtureDiagnosis, fixtureTaxonomyMatch);
-  const [diagnosis, match] = await Promise.all([
-    structuredCall("answer_diagnosis", diagnosisSchema, diagnosisPrompt(question, answer, locale), DIAGNOSIS_PROFILE),
-    structuredCall("taxonomy_match", taxonomyMatchSchema, taxonomyMatchPrompt(question, answer, taxonomy, locale), TAXONOMY_PROFILE),
-  ]);
-  if (match.matched_slug && !taxonomy.some((entry) => entry.slug === match.matched_slug)) {
-    throw new Error("Taxonomy matching returned a slug outside the provided taxonomy.");
+  try {
+    const [diagnosis, match] = await Promise.all([
+      structuredCall("answer_diagnosis", diagnosisSchema, diagnosisPrompt(question, answer, locale), DIAGNOSIS_PROFILE),
+      structuredCall("taxonomy_match", taxonomyMatchSchema, taxonomyMatchPrompt(question, answer, taxonomy, locale), TAXONOMY_PROFILE),
+    ]);
+    if (match.matched_slug && !taxonomy.some((entry) => entry.slug === match.matched_slug)) {
+      throw new Error("Taxonomy matching returned a slug outside the provided taxonomy.");
+    }
+    return mergeEvaluation(diagnosis, match);
+  } catch {
+    console.warn("[pipeline] Evaluation LLM failed; using the recorded fixture.");
+    return mergeEvaluation(fixtureDiagnosis, fixtureTaxonomyMatch);
   }
-  return mergeEvaluation(diagnosis, match);
 }
 
 export async function generateLesson(prompt: string): Promise<MicroLesson> {
   if (!process.env.OPENAI_API_KEY) return fixtureLesson;
-  return structuredCall<MicroLesson>("micro_lesson", lessonSchema, prompt, LESSON_PROFILE);
+  try {
+    return await structuredCall<MicroLesson>("micro_lesson", lessonSchema, prompt, LESSON_PROFILE);
+  } catch {
+    console.warn("[pipeline] Lesson LLM failed; using the recorded fixture.");
+    return fixtureLesson;
+  }
 }

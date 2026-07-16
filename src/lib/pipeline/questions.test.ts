@@ -10,7 +10,7 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(untagged).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", generate);
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary: generate });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.choices.some((choice) => choice.misconception_slug === taxonomy[0].slug)).toBe(true);
@@ -28,9 +28,26 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(latex).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", generate);
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary: generate });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.prompt).not.toContain("\\");
+  });
+
+  it("falls through two sol attempts to terra, then the fixture", async () => {
+    const valid = questionSchema.parse(fixture.question);
+    const invalid = { ...valid, choices: valid.choices.map((choice) => ({ ...choice, misconception_slug: null })) };
+    const primary = vi.fn().mockRejectedValueOnce(new Error("sol unavailable")).mockResolvedValueOnce(invalid);
+    const fallback = vi.fn().mockResolvedValue(invalid);
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
+
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", { primary, fallback });
+
+    expect(primary).toHaveBeenCalledTimes(2);
+    expect(fallback).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(valid);
+    expect(warning).toHaveBeenCalledOnce();
+    warning.mockRestore();
   });
 });
