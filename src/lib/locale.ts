@@ -11,5 +11,5 @@ export function languageName(locale: Locale) {
 }
 
 export function languageInstruction(locale: Locale, content: string) {
-  return `Write ${content} natively in ${languageName(locale)}. Keep misconception taxonomy names and slugs in English. Use plain Arabic numerals for math, including fractions such as 3/4.`;
+  return `Reason internally in English, but write ${content} and every other user-facing string natively in ${languageName(locale)}. Keep misconception taxonomy names and slugs in English. Machine identifier fields such as misconception_slug and labels must never contain reasoning or commentary. Use plain Arabic numerals for math, including fractions such as 3/4.`;
 }

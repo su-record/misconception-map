@@ -5,9 +5,17 @@ const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication 
 
 describe("localized generation prompts", () => {
   it("carries the selected locale into every generated content prompt", () => {
-    expect(questionPrompt("Multiplication", taxonomy, false, false, "ko")).toContain("natively in Korean");
-    expect(diagnosisPrompt("What is 3/4 times 1/2?", "3/2", "ja")).toContain("natively in Japanese");
+    const question = questionPrompt("Multiplication", taxonomy, false, false, "ko");
+    const diagnosis = diagnosisPrompt("What is 3/4 times 1/2?", "3/2", "ja");
+    const lesson = lessonPrompt(taxonomy[0].name, taxonomy[0].description, "ko");
+
+    expect(question).toContain("natively in Korean");
+    expect(question).toContain("Reason internally in English");
+    expect(question).toContain("must never contain reasoning or commentary");
+    expect(diagnosis).toContain("natively in Japanese");
+    expect(diagnosis).toContain("Reason internally in English");
     expect(taxonomyMatchPrompt("What is 3/4 times 1/2?", "3/2", taxonomy, "ja")).toContain("natively in Japanese");
-    expect(lessonPrompt(taxonomy[0].name, taxonomy[0].description, "ko")).toContain("natively in Korean");
+    expect(lesson).toContain("natively in Korean");
+    expect(lesson).toContain("Reason internally in English");
   });
 });

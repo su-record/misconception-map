@@ -5,7 +5,7 @@ export function questionPrompt(concept: string, taxonomy: TaxonomyEntry[], freeR
   const entries = taxonomy.map((item) => `${item.slug}: ${item.name} — ${item.description}`).join("\n") || "none";
   const contract = freeResponse || taxonomy.length === 0 ? "Use null for every misconception_slug." : "You MUST engineer at least one incorrect distractor around one provided misconception and tag it with that exact slug. Other distractors may use null. The correct answer MUST use null.";
   const correction = retry ? "Your previous result violated the generation contract. Correct every violation now. " : "";
-  return `${correction}Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. ${languageInstruction(locale, "the question prompt, choices, answer, and explanation")} ${contract} Never invent, modify, or reuse a slug outside this taxonomy:\n${entries}\nUse plain text math everywhere: write fractions as 3/4 and multiplication as × or the word times. Do not use LaTeX, backslash commands, or math delimiters. Return only the required structured result.`;
+  return `${correction}Create one middle-school fractions ${freeResponse ? "free-response" : "multiple-choice"} question about ${concept}. ${languageInstruction(locale, "the question prompt, choice texts, and explanation")} ${contract} Never invent, modify, or reuse a slug outside this taxonomy:\n${entries}\nUse plain text math everywhere: write fractions as 3/4 and multiplication as × or the word times. Do not use LaTeX, backslash commands, or math delimiters. Return only the required structured result.`;
 }
 
 export function diagnosisPrompt(question: string, answer: string, locale: Locale) {
