@@ -1,18 +1,18 @@
 import OpenAI from "openai";
-import { zodResponseFormat } from "openai/helpers/zod";
+import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import { fixtureEvaluation, fixtureLesson, fixtureQuestion } from "./fixtures";
 import { evaluationSchema, lessonSchema, questionSchema, type AnswerEvaluation, type GeneratedQuestion, type MicroLesson } from "./schemas";
 
 type CallProfile = {
   model: "gpt-5.6" | "gpt-5.6-terra";
-  reasoningEffort: "low" | "high";
+  reasoningEffort: "high" | "xhigh";
   timeout: number;
 };
 
 const INTERACTIVE_PROFILE: CallProfile = {
   model: "gpt-5.6-terra",
-  reasoningEffort: "high",
+  reasoningEffort: "xhigh",
   timeout: 5_000,
 };
 const LESSON_PROFILE: CallProfile = {
@@ -23,13 +23,13 @@ const LESSON_PROFILE: CallProfile = {
 
 async function structuredCall<T>(name: string, schema: z.ZodType<T>, prompt: string, profile: CallProfile) {
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, maxRetries: 1, timeout: profile.timeout });
-  const response = await client.beta.chat.completions.parse({
+  const response = await client.responses.parse({
     model: profile.model,
-    reasoning_effort: profile.reasoningEffort,
-    messages: [{ role: "user", content: prompt }],
-    response_format: zodResponseFormat(schema, name),
+    reasoning: { effort: profile.reasoningEffort },
+    input: prompt,
+    text: { format: zodTextFormat(schema, name) },
   });
-  const parsed = response.choices[0]?.message.parsed;
+  const parsed = response.output_parsed;
   if (!parsed) throw new Error(`The ${name} response was empty.`);
   return parsed as T;
 }
