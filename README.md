@@ -12,7 +12,7 @@ npm run seed
 OPENAI_API_KEY=your_key npm run dev
 ```
 
-Open [http://localhost:3000/learn](http://localhost:3000/learn). The app uses `gpt-5.6` for every live LLM call, with Zod-backed structured outputs.
+Open [http://localhost:3000/learn](http://localhost:3000/learn). Live calls use Zod-backed structured outputs: interactive questions and evaluations run on low-reasoning `gpt-5.6-luna` for responsiveness, while micro-lessons use high-reasoning `gpt-5.6` for quality. Transient API connection failures are retried once within bounded request timeouts.
 
 No API key is required for the complete demo path:
 
