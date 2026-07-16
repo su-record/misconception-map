@@ -2,12 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLocale } from "./LocaleProvider";
+import { locales, type Locale } from "@/lib/locale";
 
 const links = [{ href: "/learn", label: "Learn" }, { href: "/map", label: "My map" }, { href: "/teacher", label: "Teacher" }];
 
 export function BrandNav() {
   const pathname = usePathname();
-  return <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#0B1220]/90 backdrop-blur-xl"><nav className="mx-auto flex max-w-[1400px] items-center justify-between px-8 py-5"><Link className="group flex items-center gap-3" href="/"><GraphGlyph /><span className="text-[15px] font-extrabold tracking-tight text-slate-50">Misconception Map</span></Link><div className="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.035] p-1">{links.map((link) => <Link className={`rounded-full px-4 py-2 text-sm font-semibold ${pathname === link.href ? "bg-teal-300 text-[#08131d] shadow-[0_0_24px_rgba(45,212,191,0.18)]" : "text-slate-400 hover:text-white"}`} href={link.href} key={link.href}>{link.label}</Link>)}</div></nav></header>;
+  return <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#0B1220]/90 backdrop-blur-xl"><nav className="mx-auto flex max-w-[1400px] items-center justify-between px-8 py-5"><Link className="group flex items-center gap-3" href="/"><GraphGlyph /><span className="text-[15px] font-extrabold tracking-tight text-slate-50">Misconception Map</span></Link><div className="flex items-center gap-3"><div className="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.035] p-1">{links.map((link) => <Link className={`rounded-full px-4 py-2 text-sm font-semibold ${pathname === link.href ? "bg-teal-300 text-[#08131d] shadow-[0_0_24px_rgba(45,212,191,0.18)]" : "text-slate-400 hover:text-white"}`} href={link.href} key={link.href}>{link.label}</Link>)}</div><LocalePicker /></div></nav></header>;
+}
+
+function LocalePicker() {
+  const { locale, setLocale } = useLocale();
+  const labels: Record<Locale, string> = { en: "EN", ko: "KO", ja: "JP" };
+  return <div aria-label="Generated content language" className="flex rounded-full border border-white/[0.07] bg-white/[0.035] p-1">{locales.map((item) => <button aria-pressed={locale === item} className={`rounded-full px-2.5 py-2 text-[11px] font-extrabold tracking-wider ${locale === item ? "bg-white/10 text-teal-200" : "text-slate-500 hover:text-white"}`} key={item} onClick={() => setLocale(item)} type="button">{labels[item]}</button>)}</div>;
 }
 
 function GraphGlyph() {

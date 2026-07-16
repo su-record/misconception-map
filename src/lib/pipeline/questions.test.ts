@@ -10,7 +10,7 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(untagged).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, generate);
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", generate);
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.choices.some((choice) => choice.misconception_slug === taxonomy[0].slug)).toBe(true);
@@ -28,7 +28,7 @@ describe("generateValidatedQuestion", () => {
     const generate = vi.fn().mockResolvedValueOnce(latex).mockResolvedValueOnce(valid);
     const taxonomy = [{ slug: "multiplication-always-bigger", name: "Multiplication always makes bigger", description: "Expects every product to exceed both factors." }];
 
-    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, generate);
+    const result = await generateValidatedQuestion("Multiplication effect", taxonomy, false, "en", generate);
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.prompt).not.toContain("\\");

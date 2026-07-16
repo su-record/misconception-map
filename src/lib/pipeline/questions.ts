@@ -2,13 +2,14 @@ import { generateQuestion } from "./openai";
 import { questionPrompt } from "./prompts";
 import type { TaxonomyEntry } from "./evaluation";
 import type { GeneratedQuestion } from "./schemas";
+import type { Locale } from "../locale";
 
 type QuestionGenerator = (prompt: string) => Promise<GeneratedQuestion>;
 
-export async function generateValidatedQuestion(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, generate: QuestionGenerator = generateQuestion) {
-  const first = await generate(questionPrompt(concept, taxonomy, freeResponse, false));
+export async function generateValidatedQuestion(concept: string, taxonomy: TaxonomyEntry[], freeResponse: boolean, locale: Locale, generate: QuestionGenerator = generateQuestion) {
+  const first = await generate(questionPrompt(concept, taxonomy, freeResponse, false, locale));
   if (validQuestionContract(first, taxonomy, freeResponse)) return first;
-  const retry = await generate(questionPrompt(concept, taxonomy, freeResponse, true));
+  const retry = await generate(questionPrompt(concept, taxonomy, freeResponse, true, locale));
   if (validQuestionContract(retry, taxonomy, freeResponse)) return retry;
   throw new Error("Question generation failed its output contract after one retry.");
 }

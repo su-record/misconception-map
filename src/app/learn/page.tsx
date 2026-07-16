@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { AnswerEvaluation, GeneratedQuestion, MicroLesson } from "@/lib/pipeline/schemas";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Student = { id: number; name: string };
 type SessionData = { students: Student[]; sessionId: number; concept: { id: number; name: string }; question: GeneratedQuestion };
 
 export default function LearnPage() {
+  const { locale } = useLocale();
   const [studentId, setStudentId] = useState(1);
   const [session, setSession] = useState<SessionData>();
   const [answer, setAnswer] = useState("");
@@ -17,11 +19,11 @@ export default function LearnPage() {
   const [lesson, setLesson] = useState<MicroLesson>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  useEffect(() => { void start(studentId); }, [studentId]);
+  useEffect(() => { void start(studentId); }, [studentId, locale]);
 
   async function start(id: number) {
     setBusy(true); setError(undefined); setSession(undefined); setComplete(false); setNumber(1); setFeedback(undefined); setLesson(undefined);
-    try { setSession(await requestJson<SessionData>(`/api/session?studentId=${id}`)); }
+    try { setSession(await requestJson<SessionData>(`/api/session?studentId=${id}&locale=${locale}`)); }
     catch (cause) { setError(errorMessage(cause)); }
     finally { setBusy(false); }
   }
@@ -30,7 +32,7 @@ export default function LearnPage() {
     if (!session || !answer.trim()) return;
     setBusy(true); setError(undefined); setFeedback(undefined);
     try {
-      const result = await requestJson<{ evaluation: AnswerEvaluation; complete: boolean; concept?: SessionData["concept"]; question?: GeneratedQuestion; lesson?: MicroLesson }>("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, studentId, conceptId: session.concept.id, question: session.question, answer, questionNumber: number }) });
+      const result = await requestJson<{ evaluation: AnswerEvaluation; complete: boolean; concept?: SessionData["concept"]; question?: GeneratedQuestion; lesson?: MicroLesson }>("/api/answer", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: session.sessionId, studentId, conceptId: session.concept.id, question: session.question, answer, questionNumber: number, locale }) });
       setFeedback(result.evaluation); setComplete(result.complete); setLesson(result.lesson); setAnswer("");
       if (result.concept && result.question) setSession({ ...session, concept: result.concept, question: result.question });
       setNumber((value) => value + 1);

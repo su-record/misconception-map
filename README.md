@@ -28,6 +28,8 @@ npm run dev
 
 Without `OPENAI_API_KEY`, recorded question, evaluation, and micro-lesson fixtures pass through the same schemas and persistence paths. Seed data includes 15 middle-school fraction concepts, 15 classic misconceptions, 8 students, and historical answer evidence.
 
+The EN / KO / JP picker controls the language of live-generated questions, feedback, and micro-lessons. Recorded fixtures remain English regardless of the selected language.
+
 For a public single-process demo, enable the read-only seeded roster mode:
 
 ```bash

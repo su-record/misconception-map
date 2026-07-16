@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { BrandNav } from "@/components/BrandNav";
+import { LocaleProvider } from "@/components/LocaleProvider";
+import { LOCALE_COOKIE, parseLocale } from "@/lib/locale";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,7 +10,8 @@ export const metadata: Metadata = {
   description: "Turn wrong answers into better learning paths.",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
   return (
     <html lang="en" style={{ backgroundColor: "#0B1220", colorScheme: "dark" }}>
       <head>
@@ -15,8 +19,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta content="#0B1220" name="theme-color" />
       </head>
       <body style={{ backgroundColor: "#0B1220" }}>
-        <BrandNav />
-        {children}
+        <LocaleProvider initialLocale={locale}>
+          <BrandNav />
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );
