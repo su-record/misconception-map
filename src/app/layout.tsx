@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BrandNav } from "@/components/BrandNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,14 +11,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <header className="border-b border-slate-200 bg-white">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <Link className="font-semibold" href="/">Misconception Map</Link>
-            <div className="flex gap-6 text-sm text-slate-600">
-              <Link href="/learn">Learn</Link><Link href="/map">My map</Link><Link href="/teacher">Teacher</Link>
-            </div>
-          </nav>
-        </header>
+        <BrandNav />
         {children}
       </body>
     </html>
