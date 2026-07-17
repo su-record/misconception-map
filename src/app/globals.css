@@ -12,4 +12,6 @@ body {
 
 ::selection { background: rgba(45, 212, 191, 0.28); color: #f8fafc; }
 button, select, textarea { @apply outline-none transition duration-200; }
+select { color-scheme: dark; }
+select option { background-color: #0D1628; color: #E2E8F0; }
 button:focus-visible, select:focus-visible, textarea:focus-visible { @apply ring-2 ring-teal-300 ring-offset-2 ring-offset-[#0B1220]; }
