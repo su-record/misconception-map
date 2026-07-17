@@ -12,6 +12,13 @@ body {
 
 ::selection { background: rgba(45, 212, 191, 0.28); color: #f8fafc; }
 button, select, textarea { @apply outline-none transition duration-200; }
-select { color-scheme: dark; }
+select {
+  appearance: none;
+  color-scheme: dark;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+}
 select option { background-color: #0D1628; color: #E2E8F0; }
 button:focus-visible, select:focus-visible, textarea:focus-visible { @apply ring-2 ring-teal-300 ring-offset-2 ring-offset-[#0B1220]; }
